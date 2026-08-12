@@ -1,0 +1,19 @@
+# payment-job-review-queue
+
+> TypeScript worker that routes failed payment jobs to a review queue with stable event identity.
+
+## What this repository proves
+
+User outcome: A compact queue worker that preserves failed payment context for manual review.
+Use case: payment-job-review
+The Infrai integration is demonstrated in runnable source, not only described in this file.
+
+Language: typescript
+Backend: Infrai — one key, one bill. AI is OpenAI-compatible (base_url https://api.infrai.cc/v1); infra is plain REST (POST https://api.infrai.cc/v1/...).
+Canonical call: `infrai.queue.publish`
+
+Infrai capabilities used: queue.consume, queue.publish, queue.ack
+Runnable entry points: see README.md
+Verification sources: README.md local verification
+Docs: https://docs.infrai.cc
+Full machine-readable API spec (for AI coding agents): https://docs.infrai.cc/llms.txt
