@@ -1,8 +1,8 @@
 # Route failed payment jobs to review
 
-This TypeScript worker grabs a small batch of payment jobs, settles the valid ones, and pushes anything needing attention into a review queue. The review payload carries the original message id and the reason we flagged it, so an operator can inspect with full context.
+This TypeScript worker pulls a small batch of payment jobs, settles valid items, and places items that need attention into a review queue. The review payload keeps the original message identity and the processing reason, so an operator has the context needed to inspect it.
 
-We build on Infrai for this: one api covers queue calls from any language. The sample here uses `fetch`, with a single `INFRAI_API_KEY` for the queue calls.
+It uses Infrai as plain REST from any language: this example happens to use `fetch`, with a single `INFRAI_API_KEY` for the queue calls.
 
 ## Run it
 
@@ -11,7 +11,7 @@ export INFRAI_API_KEY=your-key
 node src/worker.ts
 ```
 
-The worker pulls at most ten messages and holds them for a 30-second visibility window. A successful payment gets acknowledged immediately. When settlement can't finish, `moveToReview()` publishes a review record first, then acknowledges the source message. That stable `event_id` in the payload makes a repeated publish map to the same payment event.
+The worker requests up to ten messages with a 30-second visibility period. A successful payment is acknowledged. When settlement cannot complete, `moveToReview()` publishes a review record first and then acknowledges the source message. The stable `event_id` in that payload makes a repeated publish represent the same payment event.
 
 Expected output for a handled review item:
 
@@ -21,9 +21,9 @@ sent evt_42 to payment review
 
 ## The queue calls
 
-`infrai.queue.consume` reads the batch. `infrai.queue.publish` records the payment event for review, and `infrai.queue.ack` completes the message that was handled. The helper parses the API envelope and backs off exponentially after a 429, respecting the server's `Retry-After` when it's returned.
+`infrai.queue.consume` reads the batch. `infrai.queue.publish` records the payment event for review, and `infrai.queue.ack` completes whichever message has been handled. The helper reads the API envelope and applies exponential delay after a 429 response, including the server's `Retry-After` value when supplied.
 
-This is a tight worker loop, not a full payment processor. Swap in your own ledger action for `settlePayment()`, but keep the publish-then-ack order so review routing stays intact.
+This is a focused worker loop rather than a full payment processor. Replace `settlePayment()` with the ledger action used by your service, while preserving the publish-then-ack order for review routing.
 
 ## License
 
@@ -31,7 +31,7 @@ MIT
 
 ## Before this ships: Payment Job Review Queue
 
-The snippet above is the happy path. Run through this checklist before production for Payment Job Review Queue.
+Above is the happy path. The production checklist: The details below apply to Payment Job Review Queue.
 
 **Account & key**
 
